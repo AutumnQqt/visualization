@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  
+    <canvas width="1600" height="1600"></canvas>
+</body>
+</html>
+<script src="https://d3js.org/d3-hierarchy.v2.min.js"></script>
+<script>
+    const canvas = document.querySelector('canvas')     // 获取canvas元素
+    const context = canvas.getContext('2d')     // 获取2d上下文
+    const dataSource = 'https://s5.ssl.qhres.com/static/b0695e2dd30daa64.json';
+
+    // const rectSize = [100,100]
+    // context.beginPath()
+    // context.save()
+    // context.fillStyle = "red"
+    // context.translate(-0.5 * rectSize[0],-0.5 * rectSize[1])
+    // context.rect(canvas.width / 2, canvas.height / 2, ...rectSize)
+    // context.fill()
+    // // context.translate(0.5 * rectSize[0], 0.5 * rectSize[1])
+    // context.restore()
+    // context.fillStyle = "green"
+
+    // context.rect(canvas.width / 4, canvas.height / 4, ...rectSize)
+    // context.fill()
+
+    // fetch(dataSource)
+    //     .then(res => res.json())
+    //     .then(json => {
+    //         console.log(json)
+    //     })
+
+    // !(async ()=>{
+    //     const res = await fetch(dataSource)
+    //     const json = await res.json()
+    //     console.log(json)
+    // })()
+
+    !(async ()=>{
+        const data = await (await fetch(dataSource)).json()
+        console.log(data)
+        const regions = d3.hierarchy(data) 
+            .sum(d => 1) 
+            .sort((a, b) => b.value - a.value); 
+        const pack = d3.pack() 
+            .size([1200, 1200]) 
+            .padding(3); 
+        const root = pack(regions);
+
+        console.log(root)
+        draw(context, root, {fillStyle: 'rgba(200, 150, 0, 0.2)', textColor: 'black'});
+
+    })()
+
+    
+    const TAU = 2 * Math.PI;
+
+    function draw(ctx, node, {fillStyle = 'rgba(200, 150, 0, 0.2)', textColor = 'white'} = {}) {
+        const children = node.children;
+        const {x, y, r} = node;
+        ctx.fillStyle = fillStyle;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, TAU);
+        ctx.fill();
+        if(children) {
+            for(let i = 0; i < children.length; i++) {
+                draw(ctx, children[i],{textColor});
+            }
+        } else {
+            const name = node.data.name;
+            ctx.fillStyle = textColor;
+            ctx.font = '1.5rem Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(name, x, y);
+        }
+    }
+
+
+
+</script>
+<style>
+    canvas {
+        border: 1px solid black;
+    }
+</style>
